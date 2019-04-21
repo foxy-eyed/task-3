@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception, prepend: true
+  before_action :push_assets
 
   include Pundit
   include Instrumentation
@@ -68,6 +69,16 @@ class ApplicationController < ActionController::Base
     response.headers["Cache-Control"] = "no-cache, no-store"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "Fri, 01 Jan 1990 00:00:00 GMT"
+  end
+
+  def push_assets
+    assets = {
+      image: %w[bell.svg menu.svg connect.svg stack.svg lightning.svg]
+    }.freeze
+
+    response.headers["Link"] = assets.each_with_object([]) do |(type, names), headers|
+      headers << names.map { |name| "<#{view_context.asset_path(name)}>; rel=preload; as=#{type}" }
+    end.flatten.join(", ")
   end
 
   def touch_current_user
