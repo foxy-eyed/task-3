@@ -73,12 +73,19 @@ class ApplicationController < ActionController::Base
 
   def push_assets
     assets = {
-      image: %w[bell.svg menu.svg connect.svg stack.svg lightning.svg]
+      style: %w[minimal.css],
+      script: %w[manifest.js vendor.js base.js Search.js],
+      image: %w[bell.svg menu.svg connect.svg stack.svg lightning.svg devplain.svg]
     }.freeze
 
     response.headers["Link"] = assets.each_with_object([]) do |(type, names), headers|
-      headers << names.map { |name| "<#{view_context.asset_path(name)}>; rel=preload; as=#{type}" }
+      headers << names.map { |name| asset_push_header(name, type) }
     end.flatten.join(", ")
+  end
+
+  def asset_push_header(name, type)
+    path = type == :script ? Webpacker.manifest.lookup(name) : view_context.asset_path(name)
+    "<#{path}>; rel=preload; as=#{type}"
   end
 
   def touch_current_user
