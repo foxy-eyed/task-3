@@ -159,3 +159,12 @@ variable :SMARTY_STREETS_WEB_KEY, :String, default: "Optional"
 group :production do
   variable :SECRET_KEY_BASE, :String
 end
+
+group :development do
+  variable :DEVELOPER, :String, default: "unknown"
+  variable :INFLUXDB_USERNAME, :String, default: "root"
+  variable :INFLUXDB_PASSWORD, :String, default: "root"
+  variable :INFLUXDB_HOST, :String, default: "localhost"
+  variable :INFLUXDB_PORT, :Integer, default: 8086
+  variable :INFLUXDB_DATABASE, :string, default: "devto_metrics"
+end

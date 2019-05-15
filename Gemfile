@@ -130,6 +130,7 @@ group :development, :test do
   gem "erb_lint", "~> 0.0", require: false
   gem "faker", "~> 1.9"
   gem "fix-db-schema-conflicts", "~> 3.0"
+  gem "influxer", "~>0.3.0"
   gem "memory_profiler", "~> 0.9"
   gem "parallel_tests", "~> 2.27"
   gem "pry-byebug", "~> 3.7"
@@ -140,6 +141,7 @@ group :development, :test do
   gem "spring", "~> 2.0"
   gem "spring-commands-rspec", "~> 1.0"
   gem "stackprof", "~> 0.2", require: false, platforms: :ruby
+  gem "tty-command", "~> 0.8"
   gem "vcr", "~> 4.0"
 end
 
