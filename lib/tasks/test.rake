@@ -7,7 +7,7 @@ namespace :test do
     puts "Running rspec via `rspec`"
     start = Time.now
     begin
-      command.run("rspec")
+      command.run("bundle exec rake parallel:spec")
     rescue TTY::Command::ExitError
       puts "TEST FAILED SAFELY"
     end

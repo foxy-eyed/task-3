@@ -155,6 +155,7 @@ variable :TRENDING_TAGS, :String, default: "git,beginners"
 variable :FACEBOOK_PIXEL_ID, :String, default: "Optional"
 variable :SMARTY_STREETS_WEB_KEY, :String, default: "Optional"
 
+variable :TEST_ENV_NUMBER, :String, default: "2"
 
 group :production do
   variable :SECRET_KEY_BASE, :String
