@@ -1,8 +1,26 @@
 require "rails_helper"
 
 RSpec.describe "NotificationsIndex", type: :request do
-  let(:dev_account) { create(:user) }
-  let(:user) { create(:user) }
+  let_it_be(:dev_account) { create(:user) }
+  let_it_be(:user) { create(:user) }
+  let_it_be(:user2) { create(:user) }
+
+  let_it_be(:article) { create(:article, user_id: user.id) }
+  let_it_be(:article1) { create(:article, user_id: user.id) }
+  let_it_be(:article2) { create(:article, user_id: user.id) }
+  let_it_be(:special_characters_article) { create(:article, user_id: user.id, title: "What's Become of Waring") }
+
+  let_it_be(:comment) { create(:comment, user_id: user2.id, commentable_id: article.id, commentable_type: "Article") }
+  let_it_be(:comment_with_mention) do
+    create(
+      :comment,
+      :with_mention,
+      user_id: user2.id,
+      commentable_id: article.id,
+      commentable_type: "Article",
+      body_markdown: "@#{user.username}",
+    )
+  end
 
   before do
     allow(User).to receive(:dev_account).and_return(dev_account)
@@ -71,10 +89,6 @@ RSpec.describe "NotificationsIndex", type: :request do
     end
 
     context "when a user has new reaction notifications" do
-      let(:article1)                   { create(:article, user_id: user.id) }
-      let(:article2)                   { create(:article, user_id: user.id) }
-      let(:special_characters_article) { create(:article, user_id: user.id, title: "What's Become of Waring") }
-
       before { sign_in user }
 
       def mock_heart_reaction_notifications(amount, categories, reactable = article1)
@@ -141,10 +155,6 @@ RSpec.describe "NotificationsIndex", type: :request do
     end
 
     context "when a user has a new comment notification" do
-      let(:user2)    { create(:user) }
-      let(:article)  { create(:article, user_id: user.id) }
-      let(:comment)  { create(:comment, user_id: user2.id, commentable_id: article.id, commentable_type: "Article") }
-
       before do
         sign_in user
         Notification.send_new_comment_notifications_without_delay(comment)
@@ -179,12 +189,9 @@ RSpec.describe "NotificationsIndex", type: :request do
     end
 
     context "when a user has a new moderation notification" do
-      let(:user2)    { create(:user) }
-      let(:article)  { create(:article, user_id: user.id) }
-      let(:comment)  { create(:comment, user_id: user2.id, commentable_id: article.id, commentable_type: "Article") }
+      before_all { user.add_role :trusted }
 
       before do
-        user.add_role :trusted
         sign_in user
         Notification.send_moderation_notification_without_delay(comment)
         get "/notifications"
@@ -243,21 +250,7 @@ RSpec.describe "NotificationsIndex", type: :request do
     end
 
     context "when a user has a new mention notification" do
-      let(:user2)    { create(:user) }
-      let(:article)  { create(:article, user_id: user.id) }
-      let(:comment) do
-        create(
-          :comment,
-          user_id: user2.id,
-          commentable_id: article.id,
-          commentable_type: "Article",
-          body_markdown: "@#{user.username}",
-        )
-      end
-
       before do
-        comment
-        Mention.create_all_without_delay(comment)
         Notification.send_mention_notification_without_delay(Mention.first)
         sign_in user
         get "/notifications"
@@ -268,14 +261,11 @@ RSpec.describe "NotificationsIndex", type: :request do
       end
 
       it "renders the processed HTML of the comment where they were mentioned" do
-        expect(response.body).to include comment.processed_html
+        expect(response.body).to include comment_with_mention.processed_html
       end
     end
 
     context "when a user has a new article notification" do
-      let(:user2)    { create(:user) }
-      let(:article)  { create(:article, user_id: user.id) }
-
       before do
         user2.follow(user)
         Notification.send_to_followers_without_delay(article, "Published")

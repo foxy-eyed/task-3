@@ -7,5 +7,11 @@ FactoryBot.define do
     factory :article_comment do
       association :commentable, factory: :article
     end
+
+    trait :with_mention do
+      after(:create) do |comment|
+        Mention.create_all_without_delay(comment)
+      end
+    end
   end
 end

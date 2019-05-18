@@ -1,46 +1,40 @@
 require "rails_helper"
 
 RSpec.describe "internal/users", type: :request do
-  let(:user) { create(:user, twitter_username: nil) }
-  let(:user2) { create(:user, twitter_username: "Twitter") }
-  let(:user3) { create(:user) }
-  let(:super_admin) { create(:user, :super_admin) }
-  let(:article) { create(:article, user: user) }
-  let(:article2) { create(:article, user: user2) }
-  let(:badge) { create(:badge, title: "one-year-club") }
+  let_it_be(:user) { create(:user, twitter_username: nil) }
+  let_it_be(:user2) { create(:user, twitter_username: "Twitter") }
+  let_it_be(:user3) { create(:user) }
+  let_it_be(:super_admin) { create(:user, :super_admin) }
+  let_it_be(:article) { create(:article, user: user) }
+  let_it_be(:article2) { create(:article, user: user2) }
+  let_it_be(:badge) { create(:badge, title: "one-year-club") }
+
+  # create user2 comment on offending user article
+  let_it_be(:comment) { create(:comment, commentable_type: "Article", commentable: article, user: user2) }
+  # create user3 reaction to user2 comment
+  let_it_be(:reaction) { create(:reaction, reactable: comment, reactable_type: "Comment", user: user3) }
+  # create user3 comment response to user2 comment
+  let_it_be(:comment2) do
+    create(:comment, :with_mention, commentable_type: "Article", commentable: article, user: user3,
+                                    ancestry: comment.id, body_markdown: "Hello @#{user2.username}, you are cool.")
+  end
+  # create user2 reaction to user3 comment response
+  let_it_be(:reaction2) { create(:reaction, reactable: comment2, reactable_type: "Comment", user: user2) }
+  # create user3 reaction to offending article
+  let_it_be(:reaction3) { create(:reaction, reactable: article, reactable_type: "Article", user: user3, category: "like") }
+  # offender reacts to user2 article
+  let_it_be(:reaction4) { create(:reaction, reactable: article2, reactable_type: "Article", user: user) }
+  # offender comments on user2 article
+  let_it_be(:comment3) { create(:comment, commentable_type: "Article", commentable: article2, user: user) }
+  # user3 reacts to offender comment
+  let_it_be(:reaction5) { create(:reaction, reactable: comment3, reactable_type: "Comment", user: user3) }
+
+  before_all do
+    VCR.turned_off { Delayed::Worker.new(quiet: true).work_off }
+  end
 
   before do
     sign_in super_admin
-    user
-    user2
-    Delayed::Worker.new(quiet: true).work_off
-    dependents_for_offending_user_article
-    offender_activity_on_other_content
-  end
-
-  def dependents_for_offending_user_article
-    # create user2 comment on offending user article
-    comment = create(:comment, commentable_type: "Article", commentable: article, user: user2)
-    # create user3 reaction to user2 comment
-    create(:reaction, reactable: comment, reactable_type: "Comment", user: user3)
-    # create user3 comment response to user2 comment
-    comment2 = create(:comment, commentable_type: "Article", commentable: article, user: user3, ancestry: comment.id, body_markdown: "Hello @#{user2.username}, you are cool.")
-    # create user2 reaction to user3 comment response
-    create(:reaction, reactable: comment2, reactable_type: "Comment", user: user2)
-    # create user3 reaction to offending article
-    create(:reaction, reactable: article, reactable_type: "Article", user: user3, category: "like")
-    Mention.create_all_without_delay(comment2)
-    Delayed::Worker.new(quiet: true).work_off
-  end
-
-  def offender_activity_on_other_content
-    # offender reacts to user2 article
-    create(:reaction, reactable: article2, reactable_type: "Article", user: user)
-    # offender comments on user2 article
-    comment = create(:comment, commentable_type: "Article", commentable: article2, user: user)
-    # user3 reacts to offender comment
-    create(:reaction, reactable: comment, reactable_type: "Comment", user: user3)
-    Delayed::Worker.new(quiet: true).work_off
   end
 
   def full_profile
@@ -60,14 +54,12 @@ RSpec.describe "internal/users", type: :request do
       url: Faker::Internet.url
     }
     GithubRepo.create(params)
-    Delayed::Worker.new(quiet: true).work_off
   end
 
   context "when merging users" do
     before do
       full_profile
       post "/internal/users/#{user.id}/merge", params: { user: { merge_user_id: user2.id } }
-      Delayed::Worker.new(quiet: true).work_off
     end
 
     it "deletes duplicate user" do
@@ -98,7 +90,7 @@ RSpec.describe "internal/users", type: :request do
     end
   end
 
-  context "when managing activty and roles" do
+  context "when managing activity and roles" do
     it "adds comment ban role" do
       patch "/internal/users/#{user.id}/user_status", params: { user: { user_status: "Comment Ban", note_for_current_role: "comment ban this user" } }
       expect(user.roles.first.name).to eq("comment_banned")
@@ -140,7 +132,6 @@ RSpec.describe "internal/users", type: :request do
       create_mutual_follows
       create_mention
       create(:badge_achievement, rewarder_id: 1, rewarding_context_message: "yay", user_id: user.id)
-      Delayed::Worker.new(quiet: true).work_off
     end
 
     it "raises a 'record not found' error after deletion" do
@@ -173,7 +164,6 @@ RSpec.describe "internal/users", type: :request do
   context "when banishing user" do
     def banish_user
       post "/internal/users/#{user.id}/banish"
-      Delayed::Worker.new(quiet: true).work_off
       user.reload
     end
 

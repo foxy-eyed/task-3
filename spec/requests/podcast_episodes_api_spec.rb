@@ -6,7 +6,7 @@ vcr_option = {
 }
 
 RSpec.describe "ArticlesApi", type: :request, vcr: vcr_option do
-  let(:podcast) { create(:podcast, feed_url: "http://softwareengineeringdaily.com/feed/podcast/") }
+  let_it_be(:podcast) { create(:podcast, feed_url: "http://softwareengineeringdaily.com/feed/podcast/") }
 
   before do
     PodcastFeed.new.get_episodes(podcast, 2)
