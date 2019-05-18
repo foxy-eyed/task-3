@@ -4,15 +4,10 @@ FactoryBot.define do
   sequence(:twitter_username) { |n| "twitter#{n}" }
   sequence(:github_username) { |n| "github#{n}" }
 
-  image = Rack::Test::UploadedFile.new(
-    File.join(Rails.root, "spec", "support", "fixtures", "images", "image1.jpeg"), "image/jpeg"
-  )
-
   factory :user do
     name               { Faker::Name.name }
     email              { generate :email }
     username           { generate :username }
-    profile_image      { image }
     twitter_username   { generate :twitter_username }
     github_username    { generate :github_username }
     summary            { Faker::Lorem.paragraph[0..rand(190)] }
@@ -74,6 +69,13 @@ FactoryBot.define do
         create(:article, user_id: user.id)
         user.update(articles_count: 1)
       end
+    end
+
+    trait :with_image do
+      image = Rack::Test::UploadedFile.new(
+        File.join(Rails.root, "spec", "support", "fixtures", "images", "image1.jpeg"), "image/jpeg"
+      )
+      profile_image { image }
     end
 
     trait :with_only_comment do
