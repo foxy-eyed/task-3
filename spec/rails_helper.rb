@@ -94,3 +94,11 @@ RSpec.configure do |config|
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
 end
+
+TestProf.configure do |config|
+  # use unique filenames for reports (by simply appending current timestamp)
+  config.timestamps = true
+
+  # color output
+  config.color = true
+end

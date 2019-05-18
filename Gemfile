@@ -19,7 +19,6 @@ gem "acts_as_follower", github: "thepracticaldev/acts_as_follower", branch: "mas
 gem "addressable", "~> 2.5", ">= 2.5.2"
 gem "administrate", "~> 0.11"
 gem "ahoy_email", "~> 0.5"
-gem "airbrake", "~> 8.1"
 gem "algoliasearch-rails", "~> 1.21"
 gem "algorithmia", "~> 1.0"
 gem "ancestry", "~> 3.0"
@@ -51,7 +50,6 @@ gem "front_matter_parser", "~> 0.2"
 gem "gemoji", "~> 3.0.0"
 gem "gibbon", "~> 2.2"
 gem "google-api-client", "~> 0.27"
-gem "honeycomb-rails"
 gem "html_truncator", "~> 0.4"
 gem "httparty", "~> 0.16"
 gem "inline_svg", "~> 1.3"
@@ -124,6 +122,11 @@ group :development do
   gem "web-console", "~> 3.7"
 end
 
+group :production, :development do
+  gem "airbrake", "~> 8.1"
+  gem "honeycomb-rails"
+end
+
 group :development, :test do
   gem "capybara", "~> 3.13"
   gem "derailed", "~> 0.1"
@@ -160,7 +163,7 @@ group :test do
   gem "simplecov", "~> 0.16", require: false
   gem "sinatra", "~> 2.0"
   gem "stripe-ruby-mock", "~> 2.5", require: "stripe_mock"
-  gem "test-prof", "~> 0.7"
+  gem "test-prof", "~> 0.9"
   gem "timecop", "~> 0.9"
   gem "webmock", "~> 3.5"
   gem "zonebie", "~> 0.6.1"
