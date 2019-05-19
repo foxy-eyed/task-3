@@ -7,24 +7,28 @@ RSpec.describe Article, type: :model do
     article
   end
 
-  let(:user) { create(:user) }
+  let_it_be(:user) { create(:user) }
   let(:article) { create(:article, user_id: user.id) }
 
-  it { is_expected.to validate_uniqueness_of(:canonical_url).allow_blank }
-  it { is_expected.to validate_uniqueness_of(:body_markdown).scoped_to(:user_id, :title) }
-  it { is_expected.to validate_uniqueness_of(:slug).scoped_to(:user_id) }
-  it { is_expected.to validate_uniqueness_of(:feed_source_url).allow_blank }
-  it { is_expected.to validate_presence_of(:title) }
-  it { is_expected.to validate_length_of(:title).is_at_most(128) }
-  it { is_expected.to validate_length_of(:cached_tag_list).is_at_most(86) }
-  it { is_expected.to belong_to(:user) }
-  it { is_expected.to belong_to(:organization).optional }
-  it { is_expected.to belong_to(:collection).optional }
-  it { is_expected.to have_many(:comments) }
-  it { is_expected.to have_many(:reactions) }
-  it { is_expected.to have_many(:notifications) }
-  it { is_expected.to validate_presence_of(:user_id) }
-  it { is_expected.not_to allow_value("foo").for(:main_image_background_hex_color) }
+  describe "validations" do
+    let(:article) { build_stubbed(:article, user_id: user.id) }
+
+    it { is_expected.to validate_uniqueness_of(:canonical_url).allow_blank }
+    it { is_expected.to validate_uniqueness_of(:body_markdown).scoped_to(:user_id, :title) }
+    it { is_expected.to validate_uniqueness_of(:slug).scoped_to(:user_id) }
+    it { is_expected.to validate_uniqueness_of(:feed_source_url).allow_blank }
+    it { is_expected.to validate_presence_of(:title) }
+    it { is_expected.to validate_length_of(:title).is_at_most(128) }
+    it { is_expected.to validate_length_of(:cached_tag_list).is_at_most(86) }
+    it { is_expected.to belong_to(:user) }
+    it { is_expected.to belong_to(:organization).optional }
+    it { is_expected.to belong_to(:collection).optional }
+    it { is_expected.to have_many(:comments) }
+    it { is_expected.to have_many(:reactions) }
+    it { is_expected.to have_many(:notifications) }
+    it { is_expected.to validate_presence_of(:user_id) }
+    it { is_expected.not_to allow_value("foo").for(:main_image_background_hex_color) }
+  end
 
   context "when published" do
     before do
@@ -35,11 +39,11 @@ RSpec.describe Article, type: :model do
   end
 
   it "assigns published date if included in frontmatter" do
-    expect(create(:article, with_date: true).published_at).not_to be_nil
+    expect(create(:article, user: user, with_date: true).published_at).not_to be_nil
   end
 
   it "reject future dates" do
-    expect(build(:article, with_date: true, date: "01/01/2020").valid?).to be(false)
+    expect(build(:article, user: user, with_date: true, date: "01/01/2020").valid?).to be(false)
   end
 
   it "has proper username" do
@@ -239,24 +243,24 @@ RSpec.describe Article, type: :model do
 
   describe "queries" do
     it "returns articles ordered by organic_page_views_count" do
-      create(:article, score: 30)
-      create(:article, score: 30)
-      top_article = create(:article, organic_page_views_count: 20, score: 30)
+      create(:article, user: user, score: 30)
+      create(:article, user: user, score: 30)
+      top_article = create(:article, user: user, organic_page_views_count: 20, score: 30)
       articles = Article.seo_boostable
       expect(articles.first[0]).to eq(top_article.path)
     end
     it "returns articles ordered by organic_page_views_count by tag" do
-      create(:article, score: 30)
-      create(:article, organic_page_views_count: 30, score: 30)
-      top_article = create(:article, organic_page_views_count: 20, score: 30)
+      create(:article, user: user, score: 30)
+      create(:article, user: user, organic_page_views_count: 30, score: 30)
+      top_article = create(:article, user: user, organic_page_views_count: 20, score: 30)
       top_article.update_column(:cached_tag_list, "good, greatalicious")
       articles = Article.seo_boostable("greatalicious")
       expect(articles.first[0]).to eq(top_article.path)
     end
     it "returns nothing if no tagged articles" do
-      create(:article, score: 30)
-      create(:article, organic_page_views_count: 30)
-      top_article = create(:article, organic_page_views_count: 20, score: 30)
+      create(:article, user: user, score: 30)
+      create(:article, user: user, organic_page_views_count: 30)
+      top_article = create(:article, user: user, organic_page_views_count: 20, score: 30)
       top_article.update_column(:cached_tag_list, "good, greatalicious")
       articles = Article.seo_boostable("godsdsdsdsgoo")
       expect(articles.size).to eq(0)
@@ -286,12 +290,12 @@ RSpec.describe Article, type: :model do
   end
 
   it "gets search indexed" do
-    article = create(:article)
+    article = create(:article, user: user)
     article.index!
   end
 
   it "removes from search index" do
-    article = create(:article)
+    article = create(:article, user: user)
     article.remove_algolia_index
   end
 
@@ -329,7 +333,7 @@ RSpec.describe Article, type: :model do
 
   describe "::filter_excluded_tags" do
     before do
-      create(:article, tags: "hiring")
+      create(:article, tags: "hiring", user: user)
     end
 
     it "exlude #hiring when no argument is given" do
@@ -342,7 +346,7 @@ RSpec.describe Article, type: :model do
     end
 
     it "filters the tag it is asked to filter" do
-      create(:article, tags: "filter")
+      create(:article, user: user, tags: "filter")
       expect(described_class.filter_excluded_tags("filter").length).to be(1)
     end
   end
@@ -408,7 +412,7 @@ RSpec.describe Article, type: :model do
     end
 
     context "when unpublished" do
-      let(:article) { create(:article, published: false) }
+      let(:article) { create(:article, user: user, published: false) }
 
       it "does not update the hotness score" do
         article.save
