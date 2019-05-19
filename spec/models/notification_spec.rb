@@ -1,11 +1,11 @@
 require "rails_helper"
 
 RSpec.describe Notification, type: :model do
-  let(:user)            { create(:user) }
-  let(:user2)           { create(:user) }
-  let(:user3)           { create(:user) }
-  let(:organization)    { create(:organization) }
-  let(:article)         { create(:article, user_id: user.id, page_views_count: 4000, positive_reactions_count: 70) }
+  let_it_be(:user) { create(:user) }
+  let_it_be(:user2) { create(:user) }
+  let_it_be(:user3) { create(:user) }
+  let_it_be(:article) { create(:article, user_id: user.id, page_views_count: 4000, positive_reactions_count: 70) }
+  let(:organization) { create(:organization) }
   let(:follow_instance) { user.follow(user2) }
 
   describe "when trying to #send_new_follower_notification after following a tag" do
@@ -129,6 +129,8 @@ RSpec.describe Notification, type: :model do
 
   describe "#send_reaction_notification" do
     context "when reactable is receiving notifications" do
+      let(:article) { create(:article, user_id: user.id) }
+
       it "sends a notification to the author of a comment" do
         comment = create(:comment, user: user2, commentable: article)
         reaction = create(:reaction, reactable: comment, user: user)
@@ -271,6 +273,7 @@ RSpec.describe Notification, type: :model do
   end
 
   describe "#send_tag_adjustment_notification" do
+    let(:user)            { create(:user) }
     let(:tag)             { create(:tag) }
     let(:article)         { create(:article, user: user2, body_markdown: "---\ntitle: Hellohnnnn#{rand(1000)}\npublished: true\ntags: heyheyhey,#{tag.name}\n---\n\nHello") }
     let(:tag_adjustment)  { create(:tag_adjustment, tag: tag, user: user, article: article) }
@@ -309,6 +312,8 @@ RSpec.describe Notification, type: :model do
     end
 
     context "when a user has received a milestone notification before" do
+      let(:article) { create(:article, user_id: user.id, page_views_count: 4000, positive_reactions_count: 70) }
+
       def mock_previous_view_milestone_notification
         Notification.send_milestone_notification_without_delay(view_milestone_hash)
         article.update_column(:page_views_count, 9001)
