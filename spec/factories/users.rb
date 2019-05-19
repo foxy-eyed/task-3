@@ -56,8 +56,10 @@ FactoryBot.define do
       end
     end
 
-    after(:create) do |user|
-      create(:identity, user_id: user.id)
+    trait :with_identity do
+      after(:create) do |user|
+        create(:identity, user_id: user.id)
+      end
     end
 
     trait :two_identities do

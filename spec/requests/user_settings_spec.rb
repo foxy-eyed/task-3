@@ -114,7 +114,7 @@ RSpec.describe "UserSettings", type: :request do
 
   describe "DELETE /users/remove_association" do
     context "when user has two identities" do
-      let(:user) { create(:user, :two_identities) }
+      let(:user) { create(:user, :with_identity, :two_identities) }
 
       before { login_as user }
 
