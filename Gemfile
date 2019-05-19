@@ -74,7 +74,7 @@ gem "pusher", "~> 1.3"
 gem "pusher-push-notifications", "~> 1.0"
 gem "rack-host-redirect", "~> 1.3"
 gem "rack-timeout", "~> 0.5"
-gem "rails", "~> 5.1.6"
+gem "rails", "~> 5.2"
 gem "rails-assets-airbrake-js-client", "~> 1.5", source: "https://rails-assets.org"
 gem "rails-observers", "~> 0.1"
 gem "recaptcha", "~> 4.13", require: "recaptcha/rails"
@@ -150,8 +150,6 @@ end
 
 group :test do
   gem "approvals", "~> 0.0"
-  gem "chromedriver-helper", "~> 2.1"
-  gem "database_cleaner", "~> 1.7"
   gem "factory_bot_rails", "~> 4.11"
   gem "fake_stripe", "~> 0.2"
   gem "launchy", "~> 2.4"
