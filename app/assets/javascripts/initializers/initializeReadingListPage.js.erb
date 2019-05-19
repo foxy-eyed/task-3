@@ -1,4 +1,4 @@
-const PER_PAGE = 45;
+const PER_PAGE = <%= Rails.env.test? ? 4 : 45 %>;
 
 function initializeReadingListPage(){
   if ( getCurrentPage("reading_list_items-index") && checkUserLoggedIn() ) {

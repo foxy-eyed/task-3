@@ -1,9 +1,11 @@
 require "rails_helper"
 
 describe "Reading list" do
-  let!(:user) { create(:user) }
+  let(:user) { create(:user) }
+  let(:author) { create(:user) }
 
   before do
+    FactoryBot.set_factory_default(:user, author)
     sign_in user
   end
 
@@ -15,7 +17,7 @@ describe "Reading list" do
     end
 
     context "when large readinglist" do
-      before { create_list(:reading_reaction, 46, user: user) }
+      before { create_list(:reading_reaction, 4, user: user) }
 
       it "shows the large reading list" do
         visit "/readinglist"
